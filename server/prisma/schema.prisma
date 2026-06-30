@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      Role     @default(BUYER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties   Property[]
+  appointments Appointment[]
+  messages     Message[]
+  favorites    Favorite[]
+  lekhapadhiProfile LekhapadhiProfile?
+  consultations     Consultation[]
+}
+
+enum Role {
+  BUYER
+  SELLER
+  AGENT
+  LEKHAPADHI
+  ADMIN
+}
+
+model Property {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  price       Float
+  type        PropertyType
+  listingType ListingType
+  district    String
+  municipality String
+  ward        String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  area        Float
+  areaUnit    String
+  road        Boolean  @default(false)
+  facing      String?
+  water       Boolean  @default(false)
+  electricity Boolean  @default(false)
+  internet    Boolean  @default(false)
+  verified    Boolean  @default(false)
+  images      String[]
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+  messages     Message[]
+  favorites    Favorite[]
+}
+
+enum PropertyType {
+  HOUSE
+  LAND
+  FLAT
+  COMMERCIAL
+}
+
+enum ListingType {
+  BUY
+  RENT
+}
+
+model Appointment {
+  id         Int               @id @default(autoincrement())
+  propertyId Int
+  buyerId    Int
+  date       DateTime
+  message    String?
+  status     AppointmentStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  buyer    User     @relation(fields: [buyerId], references: [id])
+}
+
+enum AppointmentStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  RESCHEDULED
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String
+  senderId   Int
+  propertyId Int
+  createdAt  DateTime @default(now())
+
+  sender   User     @relation(fields: [senderId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model Favorite {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  propertyId Int
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+}
+model LekhapadhiProfile {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  user         User     @relation(fields: [userId], references: [id])
+  officeName   String
+  officeAddress String
+  district     String
+  experience   Int
+  services     String[]
+  bio          String?
+  availability String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  consultations Consultation[]
+}
+
+model Consultation {
+  id          Int               @id @default(autoincrement())
+  lekhapadhiId Int
+  lekhapadhi  LekhapadhiProfile @relation(fields: [lekhapadhiId], references: [id])
+  clientId    Int
+  client      User              @relation(fields: [clientId], references: [id])
+  service     String
+  message     String?
+  status      AppointmentStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+}

@@ -1,0 +1,85 @@
+@import "tailwindcss";
+:root {
+  --bg-primary: #FAF8F4;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F2EEE6;
+ --accent: #A67C3D;
+--accent-hover: #8C6831;
+  --text-primary: #2A251C;
+  --text-muted: #7A7164;
+  --border: #E5DFD3;
+  --danger: #C0432F;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Mukta', sans-serif;
+  color: var(--text-primary);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.property-card {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-card);
+  border-radius: 0 8px 8px 0;
+}
+
+.btn-primary {
+  background-color: var(--accent);
+ color: #FFFFFF;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btn-primary:hover { background-color: var(--accent-hover); }
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--accent);
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover { background-color: var(--accent); color: #0F1A14; }
+
+.input {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--text-muted); }
+
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
