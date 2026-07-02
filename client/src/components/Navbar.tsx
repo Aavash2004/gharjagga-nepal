@@ -82,7 +82,11 @@ export default function Navbar() {
     <button className="btn-primary">My Profile</button>
   </Link>
 )}
-
+{user.role === 'ADMIN' && (
+  <Link to="/admin">
+    <button className="btn-primary">Admin Panel</button>
+  </Link>
+)}
     <Link to="/dashboard" style={{
   color: 'var(--text-muted)',
   fontSize: '14px',

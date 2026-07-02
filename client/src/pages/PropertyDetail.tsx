@@ -40,7 +40,7 @@ export default function PropertyDetail() {
   const navigate = useNavigate()
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
-
+const [selectedImage, setSelectedImage] = useState(0)
   const [showBooking, setShowBooking] = useState(false)
   const [bookingDate, setBookingDate] = useState('')
   const [bookingMessage, setBookingMessage] = useState('')
@@ -131,30 +131,72 @@ export default function PropertyDetail() {
           <ArrowLeft size={16} /> Back to Properties
         </button>
 
-        {/* Image */}
-        <div style={{
-          background: 'var(--bg-card)',
-          borderRadius: '12px',
-          height: '320px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '24px',
-          color: 'var(--text-muted)',
-          fontSize: '14px',
-          border: '1px solid var(--border)'
-        }}>
-          {property.images.length > 0 ? (
-            <img
-              src={property.images[0]}
-              alt={property.title}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }}
-            />
-          ) : (
-            'No images uploaded yet'
-          )}
-        </div>
+       {/* Image Gallery */}
+<div style={{ marginBottom: '24px' }}>
+  {property.images.length > 0 ? (
+    <div>
+      {/* Main Image */}
+      <div style={{
+        borderRadius: '12px',
+        height: '360px',
+        overflow: 'hidden',
+        marginBottom: '8px',
+        border: '1px solid var(--border)'
+      }}>
+        <img
+          src={property.images[selectedImage]}
+          alt={property.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
 
+      {/* Thumbnails */}
+      {property.images.length > 1 && (
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+          {property.images.map((img, index) => (
+            <div
+              key={index}
+              onClick={() => setSelectedImage(index)}
+              style={{
+                width: '80px',
+                height: '60px',
+                borderRadius: '6px',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                flexShrink: 0,
+                border: selectedImage === index
+                  ? '2px solid var(--accent)'
+                  : '2px solid transparent',
+                opacity: selectedImage === index ? 1 : 0.7,
+                transition: 'all 0.2s'
+              }}
+            >
+              <img
+                src={img}
+                alt={`Photo ${index + 1}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div style={{
+      background: 'var(--bg-card)',
+      borderRadius: '12px',
+      height: '320px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--text-muted)',
+      fontSize: '14px',
+      border: '1px solid var(--border)'
+    }}>
+      No images uploaded yet
+    </div>
+  )}
+</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
 
           {/* Left — Property Info */}
@@ -474,6 +516,6 @@ export default function PropertyDetail() {
           </div>
         </div>
       </div>
-    </div>
+    </div>        
   )
-}
+} 

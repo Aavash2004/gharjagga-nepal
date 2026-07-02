@@ -114,3 +114,17 @@ export const deleteProperty = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error', detail: error.message })
   }
 }
+export const verifyProperty = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params
+
+    const property = await prisma.property.update({
+      where: { id: parseInt(id) },
+      data: { verified: true }
+    })
+
+    res.json({ message: 'Property verified successfully', property })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' })
+  }
+}
