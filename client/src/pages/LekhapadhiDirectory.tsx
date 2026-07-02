@@ -12,6 +12,7 @@ interface LekhapadhiProfile {
   experience: number
   services: string[]
   bio: string
+  avatar: string
   user: { id: number; name: string; phone: string; email: string }
 }
 
@@ -102,21 +103,28 @@ export default function LekhapadhiDirectory() {
               <Link key={profile.id} to={`/lekhapadhi/${profile.id}`} style={{ textDecoration: 'none' }}>
                 <div className="property-card" style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-                    <div style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
-                      background: 'var(--bg-surface)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--accent)',
-                      fontFamily: 'Mukta, sans-serif',
-                      fontSize: '20px',
-                      fontWeight: '600'
-                    }}>
-                      {profile.user.name.charAt(0)}
-                    </div>
+                  <div style={{
+  width: '48px',
+  height: '48px',
+  borderRadius: '50%',
+  background: 'var(--bg-surface)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--accent)',
+  fontFamily: 'Mukta, sans-serif',
+  fontSize: '20px',
+  fontWeight: '600',
+  overflow: 'hidden',
+  flexShrink: 0
+}}>
+  {profile.avatar ? (
+    <img src={profile.avatar} alt={profile.user.name}
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  ) : (
+    profile.user.name.charAt(0)
+  )}
+</div>
                     <div>
                       <p style={{ color: 'var(--text-primary)', fontSize: '15px', fontWeight: '500' }}>
                         {profile.user.name}

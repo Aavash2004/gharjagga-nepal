@@ -13,6 +13,7 @@ interface Profile {
   services: string[]
   bio: string
   availability: string
+  avatar: string
   user: {
     id: number
     name: string
@@ -20,7 +21,6 @@ interface Profile {
     email: string
   }
 }
-
 export default function LekhapadhiDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -112,22 +112,28 @@ export default function LekhapadhiDetail() {
             <div className="card" style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                 <div style={{
-                  width: '72px',
-                  height: '72px',
-                  borderRadius: '50%',
-                  background: 'var(--bg-surface)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--accent)',
-                  fontFamily: 'Mukta, sans-serif',
-                  fontSize: '28px',
-                  fontWeight: '600',
-                  border: '2px solid var(--accent)',
-                  flexShrink: 0
-                }}>
-                  {profile.user.name.charAt(0)}
-                </div>
+  width: '72px',
+  height: '72px',
+  borderRadius: '50%',
+  background: 'var(--bg-surface)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--accent)',
+  fontFamily: 'Mukta, sans-serif',
+  fontSize: '28px',
+  fontWeight: '600',
+  border: '2px solid var(--accent)',
+  flexShrink: 0,
+  overflow: 'hidden'
+}}>
+  {profile.avatar ? (
+    <img src={profile.avatar} alt={profile.user.name}
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  ) : (
+    profile.user.name.charAt(0)
+  )}
+</div>
                 <div>
                   <h1 style={{
                     fontFamily: 'Mukta, sans-serif',

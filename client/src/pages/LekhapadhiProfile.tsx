@@ -16,15 +16,18 @@ export default function LekhapadhiProfile() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [formData, setFormData] = useState({
-    officeName: '',
-    officeAddress: '',
-    district: '',
-    experience: '',
-    bio: '',
-    availability: '',
-    services: [] as string[]
-  })
+const [formData, setFormData] = useState({
+  officeName: '',
+  officeAddress: '',
+  district: '',
+  experience: '',
+  bio: '',
+  availability: '',
+  services: [] as string[],
+  avatar: ''
+})
+const [avatarPreview, setAvatarPreview] = useState('')
+const [avatarUploading, setAvatarUploading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -40,15 +43,16 @@ export default function LekhapadhiProfile() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.data.profile) {
-          setFormData({
-            officeName: res.data.profile.officeName,
-            officeAddress: res.data.profile.officeAddress,
-            district: res.data.profile.district,
-            experience: res.data.profile.experience.toString(),
-            bio: res.data.profile.bio || '',
-            availability: res.data.profile.availability || '',
-            services: res.data.profile.services
-          })
+        setFormData({
+  officeName: res.data.profile.officeName,
+  officeAddress: res.data.profile.officeAddress,
+  district: res.data.profile.district,
+  experience: res.data.profile.experience.toString(),
+  bio: res.data.profile.bio || '',
+  availability: res.data.profile.availability || '',
+  services: res.data.profile.services,
+  avatar: res.data.profile.avatar || ''
+})
         }
       } catch (error) {
         console.error('No profile yet')
@@ -65,6 +69,32 @@ export default function LekhapadhiProfile() {
         : [...prev.services, service]
     }))
   }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  setAvatarUploading(true)
+  setAvatarPreview(URL.createObjectURL(file))
+
+  const token = localStorage.getItem('token')
+  const uploadData = new FormData()
+  uploadData.append('images', file)
+
+  try {
+    const res = await axios.post('http://localhost:5000/api/upload', uploadData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    setFormData(prev => ({ ...prev, avatar: res.data.urls[0] }))
+  } catch (error) {
+    console.error('Avatar upload failed')
+  } finally {
+    setAvatarUploading(false)
+  }
+}
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
  
@@ -204,7 +234,61 @@ const handleSubmit = async (e: React.FormEvent) => {
               />
             </div>
           </div>
-
+          {/* Avatar Upload */}
+<div className="card" style={{ marginBottom: '20px' }}>
+  <p style={labelStyle}>Profile Photo</p>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+    <div style={{
+      width: '80px',
+      height: '80px',
+      borderRadius: '50%',
+      background: 'var(--bg-surface)',
+      border: '2px solid var(--border)',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--accent)',
+      fontSize: '28px',
+      fontFamily: 'Mukta, sans-serif',
+      fontWeight: '600',
+      flexShrink: 0
+    }}>
+      {avatarPreview || formData.avatar ? (
+        <img
+          src={avatarPreview || formData.avatar}
+          alt="Avatar"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        'P'
+      )}
+    </div>
+    <div>
+      <label style={{
+        display: 'inline-block',
+        cursor: 'pointer'
+      }}>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleAvatarUpload}
+          style={{ display: 'none' }}
+        />
+        <span className="btn-outline" style={{
+          display: 'inline-block',
+          fontSize: '13px',
+          padding: '8px 16px'
+        }}>
+          {avatarUploading ? 'Uploading...' : 'Upload Photo'}
+        </span>
+      </label>
+      <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '6px' }}>
+        JPG, PNG up to 5MB
+      </p>
+    </div>
+  </div>
+</div>
           <div className="card" style={{ marginBottom: '24px' }}>
             <p style={labelStyle}>Services Offered</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

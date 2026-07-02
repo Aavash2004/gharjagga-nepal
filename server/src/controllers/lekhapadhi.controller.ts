@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 // Create or update Lekhapadhi profile
 export const createProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const { officeName, officeAddress, district, experience, services, bio, availability } = req.body
+    const { officeName, officeAddress, district, experience, services, bio, availability, avatar } = req.body
 
     const existing = await prisma.lekhapadhiProfile.findUnique({
       where: { userId: req.user!.id }
@@ -18,7 +18,7 @@ export const createProfile = async (req: AuthRequest, res: Response) => {
     if (existing) {
       profile = await prisma.lekhapadhiProfile.update({
         where: { userId: req.user!.id },
-        data: { officeName, officeAddress, district, experience: parseInt(experience), services, bio, availability }
+        data: { officeName, officeAddress, district, experience: parseInt(experience), services, bio, availability, avatar }
       })
     } else {
       profile = await prisma.lekhapadhiProfile.create({
@@ -26,7 +26,7 @@ export const createProfile = async (req: AuthRequest, res: Response) => {
           userId: req.user!.id,
           officeName, officeAddress, district,
           experience: parseInt(experience),
-          services, bio, availability
+          services, bio, availability, avatar
         }
       })
     }
