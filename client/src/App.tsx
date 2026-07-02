@@ -10,7 +10,9 @@ import MapView from './pages/MapView'
 import Dashboard from './pages/Dashboard'
 import LekhapadhiDirectory from './pages/LekhapadhiDirectory'
 import LekhapadhiProfile from './pages/LekhapadhiProfile'
+import LekhapadhiDetail from './pages/LekhapadhiDetail'
 import AdminDashboard from './pages/AdminDashboard'
+import Favorites from './pages/Favorites'
 
 function App() {
   return (
@@ -25,8 +27,10 @@ function App() {
       <Route path="/map" element={<MapView />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/lekhapadhi" element={<LekhapadhiDirectory />} />
+      <Route path="/lekhapadhi/:id" element={<LekhapadhiDetail />} />
       <Route path="/lekhapadhi-profile" element={<LekhapadhiProfile />} />
       <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/favorites" element={<Favorites />} />
     </Routes>
   )
 }

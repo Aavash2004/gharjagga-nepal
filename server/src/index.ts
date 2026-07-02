@@ -6,6 +6,7 @@ import propertyRoutes from './routes/property.routes'
 import appointmentRoutes from './routes/appointment.routes'
 import lekhapadhiRoutes from './routes/lekhapadhi.routes'
 import uploadRoutes from './routes/upload.routes'
+import favoriteRoutes from './routes/favorite.routes'
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ app.use('/api/properties', propertyRoutes)
 app.use('/api/appointments', appointmentRoutes)
 app.use('/api/lekhapadhi', lekhapadhiRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/favorites', favoriteRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: 'GharJagga Nepal API is running!' })

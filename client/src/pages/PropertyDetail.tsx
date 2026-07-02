@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { ArrowLeft, MapPin, Phone, MessageCircle, Droplets, Zap, Wifi, Calendar } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, MessageCircle, Droplets, Zap, Wifi, Calendar, Heart } from 'lucide-react'
 import Navbar from '../components/Navbar'
 
 interface Property {
@@ -40,7 +40,8 @@ export default function PropertyDetail() {
   const navigate = useNavigate()
   const [property, setProperty] = useState<Property | null>(null)
   const [loading, setLoading] = useState(true)
-const [selectedImage, setSelectedImage] = useState(0)
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [favorited, setFavorited] = useState(false)
   const [showBooking, setShowBooking] = useState(false)
   const [bookingDate, setBookingDate] = useState('')
   const [bookingMessage, setBookingMessage] = useState('')
@@ -67,7 +68,40 @@ const [selectedImage, setSelectedImage] = useState(0)
     if (price >= 100000) return `Rs. ${(price / 100000).toFixed(1)} Lakh`
     return `Rs. ${price.toLocaleString()}`
   }
+useEffect(() => {
+  const checkFavorite = async () => {
+    const token = localStorage.getItem('token')
+    if (!token || !property) return
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/favorites/check/${property.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setFavorited(res.data.favorited)
+    } catch (error) {
+      console.error('Failed to check favorite')
+    }
+  }
+  checkFavorite()
+}, [property])
 
+const handleToggleFavorite = async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    navigate('/login')
+    return
+  }
+  try {
+    const res = await axios.post(
+      'http://localhost:5000/api/favorites/toggle',
+      { propertyId: property!.id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    setFavorited(res.data.favorited)
+  } catch (error) {
+    console.error('Failed to toggle favorite')
+  }
+}
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const token = localStorage.getItem('token')
@@ -113,23 +147,44 @@ const [selectedImage, setSelectedImage] = useState(0)
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px' }}>
 
         {/* Back button */}
-        <button
-          onClick={() => navigate('/properties')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            fontSize: '14px',
-            marginBottom: '24px',
-            padding: '0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
-        >
-          <ArrowLeft size={16} /> Back to Properties
-        </button>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+  <button
+    onClick={() => navigate('/properties')}
+    style={{
+      background: 'none',
+      border: 'none',
+      color: 'var(--text-muted)',
+      cursor: 'pointer',
+      fontSize: '14px',
+      padding: '0',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
+    }}
+  >
+    <ArrowLeft size={16} /> Back to Properties
+  </button>
+
+  <button
+    onClick={handleToggleFavorite}
+    style={{
+      background: favorited ? '#2A1A1A' : 'var(--bg-card)',
+      border: `1px solid ${favorited ? '#C0614A' : 'var(--border)'}`,
+      color: favorited ? '#C0614A' : 'var(--text-muted)',
+      padding: '8px 16px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontSize: '14px',
+      transition: 'all 0.2s'
+    }}
+  >
+    <Heart size={16} fill={favorited ? '#C0614A' : 'none'} />
+    {favorited ? 'Saved' : 'Save Property'}
+  </button>
+</div>
 
        {/* Image Gallery */}
 <div style={{ marginBottom: '24px' }}>

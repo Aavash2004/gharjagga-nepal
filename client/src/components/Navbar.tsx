@@ -94,6 +94,13 @@ export default function Navbar() {
 }}>
   Dashboard
 </Link>
+<Link to="/favorites" style={{
+  color: 'var(--text-muted)',
+  fontSize: '14px',
+  textDecoration: 'none'
+}}>
+  Favorites
+</Link>
     <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
       {user.name}
     </span>
