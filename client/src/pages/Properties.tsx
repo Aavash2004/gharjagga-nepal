@@ -2,28 +2,44 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
-
 interface Property {
   id: number
   title: string
+  description: string
   price: number
   type: string
   listingType: string
   district: string
   municipality: string
+  ward: string
+  address: string
+  latitude: number
+  longitude: number
   area: number
   areaUnit: string
   road: boolean
+  facing: string
   water: boolean
   electricity: boolean
+  internet: boolean
+  parking: boolean
+  lift: boolean
+  bedrooms: number | null
+  bathrooms: number | null
+  floors: number | null
+  floorNumber: number | null
+  furnished: string | null
+  builtYear: number | null
   verified: boolean
   images: string[]
+  createdAt: string
   owner: {
+    id: number
     name: string
     phone: string
+    email: string
   }
 }
-
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)

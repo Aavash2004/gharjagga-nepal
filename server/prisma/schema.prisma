@@ -54,6 +54,14 @@ model Property {
   water       Boolean  @default(false)
   electricity Boolean  @default(false)
   internet    Boolean  @default(false)
+  bedrooms    Int?
+bathrooms   Int?
+floors      Int?
+parking     Boolean  @default(false)
+furnished   String?
+builtYear   Int?
+floorNumber Int?
+lift        Boolean  @default(false)
   verified    Boolean  @default(false)
   images      String[]
   ownerId     Int

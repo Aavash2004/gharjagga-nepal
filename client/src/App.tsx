@@ -13,6 +13,7 @@ import LekhapadhiProfile from './pages/LekhapadhiProfile'
 import LekhapadhiDetail from './pages/LekhapadhiDetail'
 import AdminDashboard from './pages/AdminDashboard'
 import Favorites from './pages/Favorites'
+import EditProperty from './pages/EditProperty'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
       <Route path="/lekhapadhi-profile" element={<LekhapadhiProfile />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/favorites" element={<Favorites />} />
+      <Route path="/properties/:id/edit" element={<EditProperty />} />
     </Routes>
   )
 }

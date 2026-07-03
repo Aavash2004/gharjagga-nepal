@@ -128,3 +128,31 @@ export const verifyProperty = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error' })
   }
 }
+export const updateProperty = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params
+    const propertyId = parseInt(id)
+
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId }
+    })
+
+    if (!property) {
+      return res.status(404).json({ message: 'Property not found' })
+    }
+
+    if (property.ownerId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Not authorized' })
+    }
+
+    const updated = await prisma.property.update({
+      where: { id: propertyId },
+      data: req.body
+    })
+
+    res.json({ message: 'Property updated successfully', property: updated })
+ } catch (error: any) {
+    console.error('UPDATE ERROR:', error)
+    res.status(500).json({ message: 'Server error', detail: error.message })
+  }
+}

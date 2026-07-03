@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { ArrowLeft, MapPin, Phone, MessageCircle, Droplets, Zap, Wifi, Calendar, Heart } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, MessageCircle, Droplets, Zap, Wifi, Calendar, Heart, Pencil } from 'lucide-react'
 import Navbar from '../components/Navbar'
 
 interface Property {
@@ -24,6 +24,14 @@ interface Property {
   water: boolean
   electricity: boolean
   internet: boolean
+  parking: boolean
+  lift: boolean
+  bedrooms: number | null
+  bathrooms: number | null
+  floors: number | null
+  floorNumber: number | null
+  furnished: string | null
+  builtYear: number | null
   verified: boolean
   images: string[]
   createdAt: string
@@ -164,6 +172,25 @@ const handleToggleFavorite = async () => {
   >
     <ArrowLeft size={16} /> Back to Properties
   </button>
+  {JSON.parse(localStorage.getItem('user') || 'null')?.id === property.owner.id && (
+  <button
+    onClick={() => navigate(`/properties/${property.id}/edit`)}
+    style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border)',
+      color: 'var(--text-muted)',
+      padding: '8px 16px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontSize: '14px'
+    }}
+  >
+    <Pencil size={16} /> Edit
+  </button>
+)}
 
   <button
     onClick={handleToggleFavorite}
@@ -208,7 +235,7 @@ const handleToggleFavorite = async () => {
       {/* Thumbnails */}
       {property.images.length > 1 && (
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-          {property.images.map((img, index) => (
+         {property.images.map((img: string, index: number) => (
             <div
               key={index}
               onClick={() => setSelectedImage(index)}
@@ -336,44 +363,52 @@ const handleToggleFavorite = async () => {
             </div>
 
             {/* Details Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '12px',
-              marginBottom: '24px'
-            }}>
-              {[
-                { label: 'Area', value: `${property.area} ${property.areaUnit}` },
-                { label: 'Facing', value: property.facing || 'N/A' },
-                { label: 'Road Access', value: property.road ? 'Yes' : 'No' },
-                { label: 'Water', value: property.water ? 'Available' : 'No', icon: <Droplets size={14} /> },
-                { label: 'Electricity', value: property.electricity ? 'Available' : 'No', icon: <Zap size={14} /> },
-                { label: 'Internet', value: property.internet ? 'Available' : 'No', icon: <Wifi size={14} /> },
-              ].map(detail => (
-                <div key={detail.label} style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  padding: '12px 16px'
-                }}>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '11px', marginBottom: '4px' }}>
-                    {detail.label}
-                  </p>
-                  <p style={{
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    {detail.icon && <span style={{ color: 'var(--accent)' }}>{detail.icon}</span>}
-                    {detail.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
+            {/* Details Grid */}
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '12px',
+  marginBottom: '24px'
+}}>
+  {[
+    { label: 'Area', value: `${property.area} ${property.areaUnit}` },
+    property.facing && { label: 'Facing', value: property.facing },
+    property.bedrooms && { label: 'Bedrooms', value: `${property.bedrooms} Bedrooms` },
+    property.bathrooms && { label: 'Bathrooms', value: `${property.bathrooms} Bathrooms` },
+    property.floors && { label: 'Floors', value: `${property.floors} Floors` },
+    property.floorNumber && { label: 'Floor No.', value: `Floor ${property.floorNumber}` },
+    property.furnished && { label: 'Furnished', value: property.furnished },
+    property.builtYear && { label: 'Built Year', value: property.builtYear.toString() },
+    { label: 'Road Access', value: property.road ? 'Yes' : 'No' },
+    { label: 'Water', value: property.water ? 'Available' : 'No', icon: <Droplets size={14} /> },
+    { label: 'Electricity', value: property.electricity ? 'Available' : 'No', icon: <Zap size={14} /> },
+    { label: 'Internet', value: property.internet ? 'Available' : 'No', icon: <Wifi size={14} /> },
+    property.parking && { label: 'Parking', value: 'Available' },
+    property.lift && { label: 'Lift', value: 'Available' },
+  ].filter(Boolean).map((detail: any) => (
+    <div key={detail.label} style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border)',
+      borderRadius: '8px',
+      padding: '12px 16px'
+    }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '11px', marginBottom: '4px' }}>
+        {detail.label}
+      </p>
+      <p style={{
+        color: 'var(--text-primary)',
+        fontSize: '14px',
+        fontFamily: 'JetBrains Mono, monospace',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+      }}>
+        {detail.icon && <span style={{ color: 'var(--accent)' }}>{detail.icon}</span>}
+        {detail.value}
+      </p>
+    </div>
+  ))}
+</div>
             {/* Description */}
             {property.description && (
               <div style={{

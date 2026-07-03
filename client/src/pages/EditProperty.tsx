@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import LocationPicker from '../components/LocationPicker'
 
-export default function PostProperty() {
+export default function EditProperty() {
   const navigate = useNavigate()
+  const { id } = useParams()
   const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const [images, setImages] = useState<string[]>([])
-  const [previewImages, setPreviewImages] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,6 +42,49 @@ export default function PostProperty() {
     builtYear: '',
   })
 
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/properties/${id}`)
+        const p = res.data.property
+        setFormData({
+          title: p.title,
+          description: p.description || '',
+          price: p.price.toString(),
+          type: p.type,
+          listingType: p.listingType,
+          district: p.district,
+          municipality: p.municipality,
+          ward: p.ward || '',
+          address: p.address || '',
+          latitude: p.latitude?.toString() || '',
+          longitude: p.longitude?.toString() || '',
+          area: p.area.toString(),
+          areaUnit: p.areaUnit,
+          road: p.road,
+          facing: p.facing || '',
+          water: p.water,
+          electricity: p.electricity,
+          internet: p.internet,
+          parking: p.parking || false,
+          lift: p.lift || false,
+          bedrooms: p.bedrooms?.toString() || '',
+          bathrooms: p.bathrooms?.toString() || '',
+          floors: p.floors?.toString() || '',
+          floorNumber: p.floorNumber?.toString() || '',
+          furnished: p.furnished || '',
+          builtYear: p.builtYear?.toString() || '',
+        })
+        setImages(p.images || [])
+      } catch (error) {
+        navigate('/properties')
+      } finally {
+        setFetching(false)
+      }
+    }
+    fetchProperty()
+  }, [id])
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -55,8 +100,6 @@ export default function PostProperty() {
     if (!files || files.length === 0) return
     setUploading(true)
     const token = localStorage.getItem('token')
-    const previews = Array.from(files).map(file => URL.createObjectURL(file))
-    setPreviewImages(prev => [...prev, ...previews])
     const uploadData = new FormData()
     Array.from(files).forEach(file => uploadData.append('images', file))
     try {
@@ -73,26 +116,37 @@ export default function PostProperty() {
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
-    setPreviewImages(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    const token = localStorage.getItem('token')
-    if (!token) { navigate('/login'); return }
-    try {
-      await axios.post('http://localhost:5000/api/properties', { ...formData, images }, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      navigate('/properties')
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to post property')
-    } finally {
-      setLoading(false)
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError('')
+  const token = localStorage.getItem('token')
+  try {
+    await axios.put(`http://localhost:5000/api/properties/${id}`, {
+      ...formData,
+      images,
+      price: parseFloat(formData.price),
+      area: parseFloat(formData.area),
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+      bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+      floors: formData.floors ? parseInt(formData.floors) : null,
+      floorNumber: formData.floorNumber ? parseInt(formData.floorNumber) : null,
+      builtYear: formData.builtYear ? parseInt(formData.builtYear) : null,
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    setSuccess(true)
+    setTimeout(() => navigate(`/properties/${id}`), 1500)
+  } catch (err: any) {
+    setError(err.response?.data?.message || 'Failed to update property')
+  } finally {
+    setLoading(false)
   }
+}
 
   const labelStyle: React.CSSProperties = {
     display: 'block', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px'
@@ -101,8 +155,16 @@ export default function PostProperty() {
   const isLand = formData.type === 'LAND'
   const isHouse = formData.type === 'HOUSE'
   const isFlat = formData.type === 'FLAT'
-  const isCommercial = formData.type === 'COMMERCIAL'
   const isRent = formData.listingType === 'RENT'
+
+  if (fetching) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      <Navbar />
+      <div style={{ textAlign: 'center', padding: '64px', color: 'var(--text-muted)' }}>
+        Loading...
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -115,10 +177,10 @@ export default function PostProperty() {
             fontFamily: 'JetBrains Mono, monospace',
             letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px'
           }}>
-            Sell or Rent
+            Edit Listing
           </p>
           <h1 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '32px', color: 'var(--text-primary)' }}>
-            Post a Property
+            Update Property
           </h1>
         </div>
 
@@ -133,28 +195,32 @@ export default function PostProperty() {
         )}
 
         <form onSubmit={handleSubmit}>
-
+            {success && (
+  <div style={{
+    background: '#1A3A2A',
+    color: '#4CAF50',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    marginBottom: '20px'
+  }}>
+    Property updated successfully! Redirecting...
+  </div>
+)}
           {/* Basic Info */}
           <div className="card" style={{ marginBottom: '20px' }}>
             <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Basic Information
             </h3>
-
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Property Title</label>
-              <input className="input" name="title"
-                placeholder="e.g. 3 Aana Land in Budhanilkantha"
-                value={formData.title} onChange={handleChange} required />
+              <input className="input" name="title" value={formData.title} onChange={handleChange} required />
             </div>
-
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Description</label>
-              <textarea className="input" name="description"
-                placeholder="Describe your property..."
-                value={formData.description} onChange={handleChange}
-                rows={4} style={{ resize: 'vertical' }} />
+              <textarea className="input" name="description" value={formData.description}
+                onChange={handleChange} rows={4} style={{ resize: 'vertical' }} />
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={labelStyle}>Property Type</label>
@@ -175,84 +241,20 @@ export default function PostProperty() {
             </div>
           </div>
 
-          {/* Location */}
-          <div className="card" style={{ marginBottom: '20px' }}>
-            <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '20px' }}>
-              Location
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={labelStyle}>District</label>
-                <select className="input" name="district" value={formData.district} onChange={handleChange} required>
-                  <option value="">Select District</option>
-                  <option value="Kathmandu">Kathmandu</option>
-                  <option value="Lalitpur">Lalitpur</option>
-                  <option value="Bhaktapur">Bhaktapur</option>
-                  <option value="Pokhara">Pokhara</option>
-                  <option value="Chitwan">Chitwan</option>
-                  <option value="Butwal">Butwal</option>
-                  <option value="Dharan">Dharan</option>
-                  <option value="Biratnagar">Biratnagar</option>
-                  <option value="Birgunj">Birgunj</option>
-                  <option value="Dhangadhi">Dhangadhi</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>Municipality / VDC</label>
-                <input className="input" name="municipality"
-                  placeholder="e.g. Budhanilkantha"
-                  value={formData.municipality} onChange={handleChange} required />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <label style={labelStyle}>Ward No.</label>
-                <input className="input" name="ward" placeholder="e.g. 7"
-                  value={formData.ward} onChange={handleChange} />
-              </div>
-              <div>
-                <label style={labelStyle}>Full Address</label>
-                <input className="input" name="address"
-                  placeholder="e.g. Budhanilkantha, Kathmandu"
-                  value={formData.address} onChange={handleChange} />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '8px' }}>
-              <label style={labelStyle}>Pin Location on Map (click to set)</label>
-              <LocationPicker
-                latitude={formData.latitude ? parseFloat(formData.latitude) : null}
-                longitude={formData.longitude ? parseFloat(formData.longitude) : null}
-                onLocationSelect={(lat, lng) => {
-                  setFormData(prev => ({ ...prev, latitude: lat.toString(), longitude: lng.toString() }))
-                }}
-              />
-              {formData.latitude && formData.longitude && (
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  Selected: {parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Area & Price */}
+          {/* Price & Area */}
           <div className="card" style={{ marginBottom: '20px' }}>
             <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '20px' }}>
               Area & Price
             </h3>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
               <div>
                 <label style={labelStyle}>Area</label>
-                <input className="input" name="area" type="number"
-                  placeholder="e.g. 3" value={formData.area} onChange={handleChange} required />
+                <input className="input" name="area" type="number" value={formData.area} onChange={handleChange} required />
               </div>
               <div>
                 <label style={labelStyle}>Unit</label>
                 <select className="input" name="areaUnit" value={formData.areaUnit} onChange={handleChange}>
-                  {(isLand) && (
+                  {isLand && (
                     <>
                       <option value="Ropani">Ropani</option>
                       <option value="Aana">Aana</option>
@@ -267,48 +269,24 @@ export default function PostProperty() {
                 </select>
               </div>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={labelStyle}>{isRent ? 'Monthly Rent (Rs.)' : 'Sale Price (Rs.)'}</label>
-                <input className="input" name="price" type="number"
-                  placeholder={isRent ? 'e.g. 25000' : 'e.g. 4500000'}
-                  value={formData.price} onChange={handleChange} required />
-              </div>
-              {!isFlat && !isCommercial && (
-                <div>
-                  <label style={labelStyle}>Facing Direction</label>
-                  <select className="input" name="facing" value={formData.facing} onChange={handleChange}>
-                    <option value="">Select</option>
-                    <option value="East">East</option>
-                    <option value="West">West</option>
-                    <option value="North">North</option>
-                    <option value="South">South</option>
-                    <option value="North-East">North-East</option>
-                    <option value="North-West">North-West</option>
-                    <option value="South-East">South-East</option>
-                    <option value="South-West">South-West</option>
-                  </select>
-                </div>
-              )}
+            <div>
+              <label style={labelStyle}>{isRent ? 'Monthly Rent (Rs.)' : 'Sale Price (Rs.)'}</label>
+              <input className="input" name="price" type="number" value={formData.price} onChange={handleChange} required />
             </div>
           </div>
 
-          {/* House specific fields */}
+          {/* House/Flat details */}
           {(isHouse || isFlat) && (
             <div className="card" style={{ marginBottom: '20px' }}>
               <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '20px' }}>
                 {isHouse ? 'House Details' : 'Apartment Details'}
               </h3>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
                   <label style={labelStyle}>Bedrooms</label>
                   <select className="input" name="bedrooms" value={formData.bedrooms} onChange={handleChange}>
                     <option value="">Select</option>
-                    {[1,2,3,4,5,6].map(n => (
-                      <option key={n} value={n}>{n} Bedroom{n > 1 ? 's' : ''}</option>
-                    ))}
+                    {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} Bedroom{n > 1 ? 's' : ''}</option>)}
                     <option value="7">7+</option>
                   </select>
                 </div>
@@ -316,32 +294,12 @@ export default function PostProperty() {
                   <label style={labelStyle}>Bathrooms</label>
                   <select className="input" name="bathrooms" value={formData.bathrooms} onChange={handleChange}>
                     <option value="">Select</option>
-                    {[1,2,3,4,5].map(n => (
-                      <option key={n} value={n}>{n} Bathroom{n > 1 ? 's' : ''}</option>
-                    ))}
+                    {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} Bathroom{n > 1 ? 's' : ''}</option>)}
+                    <option value="7">7+</option>
                   </select>
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                {isHouse && (
-                  <div>
-                    <label style={labelStyle}>Number of Floors</label>
-                    <select className="input" name="floors" value={formData.floors} onChange={handleChange}>
-                      <option value="">Select</option>
-                      {[1,2,3,4,5].map(n => (
-                        <option key={n} value={n}>{n} Floor{n > 1 ? 's' : ''}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {isFlat && (
-                  <div>
-                    <label style={labelStyle}>Floor Number</label>
-                    <input className="input" name="floorNumber" type="number"
-                      placeholder="e.g. 3" value={formData.floorNumber} onChange={handleChange} />
-                  </div>
-                )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={labelStyle}>Furnished Status</label>
                   <select className="input" name="furnished" value={formData.furnished} onChange={handleChange}>
@@ -351,15 +309,13 @@ export default function PostProperty() {
                     <option value="Unfurnished">Unfurnished</option>
                   </select>
                 </div>
+                {isHouse && (
+                  <div>
+                    <label style={labelStyle}>Built Year</label>
+                    <input className="input" name="builtYear" type="number" value={formData.builtYear} onChange={handleChange} />
+                  </div>
+                )}
               </div>
-
-              {isHouse && (
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={labelStyle}>Built Year</label>
-                  <input className="input" name="builtYear" type="number"
-                    placeholder="e.g. 2018" value={formData.builtYear} onChange={handleChange} />
-                </div>
-              )}
             </div>
           )}
 
@@ -374,7 +330,7 @@ export default function PostProperty() {
                 { name: 'water', label: 'Water Supply' },
                 { name: 'electricity', label: 'Electricity' },
                 { name: 'internet', label: 'Internet' },
-                ...(isHouse || isFlat || isCommercial ? [{ name: 'parking', label: 'Parking' }] : []),
+                ...(!isLand ? [{ name: 'parking', label: 'Parking' }] : []),
                 ...(isFlat ? [{ name: 'lift', label: 'Lift / Elevator' }] : []),
               ].map(amenity => (
                 <label key={amenity.name} style={{
@@ -386,60 +342,57 @@ export default function PostProperty() {
                     checked={formData[amenity.name as keyof typeof formData] as boolean}
                     onChange={handleChange}
                     style={{ accentColor: 'var(--accent)', width: '16px', height: '16px' }} />
-                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>
-                    {amenity.label}
-                  </span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{amenity.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          {/* Photos */}
+          {/* Images */}
           <div className="card" style={{ marginBottom: '24px' }}>
-            <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '8px' }}>
+            <h3 style={{ fontFamily: 'Mukta, sans-serif', fontSize: '16px', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Photos
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
-              Upload up to 10 photos
-            </p>
-            <label style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '2px dashed var(--border)', borderRadius: '8px',
-              padding: '32px', cursor: 'pointer', marginBottom: '16px',
-              background: 'var(--bg-surface)'
-            }}>
-              <input type="file" accept="image/*" multiple
-                onChange={handleImageUpload} style={{ display: 'none' }} />
-              <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                {uploading ? 'Uploading...' : 'Click to select photos'}
-              </span>
-            </label>
-
-            {previewImages.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
-                {previewImages.map((img, index) => (
+            {images.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '16px' }}>
+                {images.map((img, index) => (
                   <div key={index} style={{ position: 'relative' }}>
-                    <img src={img} alt={`Preview ${index + 1}`}
+                    <img src={img} alt={`Photo ${index + 1}`}
                       style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border)' }} />
                     <button type="button" onClick={() => removeImage(index)}
                       style={{
                         position: 'absolute', top: '4px', right: '4px',
                         background: 'rgba(0,0,0,0.6)', color: '#fff',
                         border: 'none', borderRadius: '50%', width: '20px',
-                        height: '20px', cursor: 'pointer', fontSize: '12px', lineHeight: 1
-                      }}>
-                      ×
-                    </button>
+                        height: '20px', cursor: 'pointer', fontSize: '12px'
+                      }}>×</button>
                   </div>
                 ))}
               </div>
             )}
+            <label style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '2px dashed var(--border)', borderRadius: '8px',
+              padding: '24px', cursor: 'pointer', background: 'var(--bg-surface)'
+            }}>
+              <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
+              <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+                {uploading ? 'Uploading...' : '+ Add More Photos'}
+              </span>
+            </label>
           </div>
 
-          <button className="btn-primary" type="submit" disabled={loading}
-            style={{ width: '100%', fontSize: '16px', padding: '14px' }}>
-            {loading ? 'Posting...' : 'Post Property'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="button" className="btn-outline"
+              onClick={() => navigate(`/properties/${id}`)}
+              style={{ flex: 1, padding: '14px' }}>
+              Cancel
+            </button>
+            <button className="btn-primary" type="submit" disabled={loading}
+              style={{ flex: 2, fontSize: '16px', padding: '14px' }}>
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
