@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import authRoutes from './routes/auth.routes'
 import propertyRoutes from './routes/property.routes'
 import appointmentRoutes from './routes/appointment.routes'
@@ -11,6 +13,14 @@ import favoriteRoutes from './routes/favorite.routes'
 dotenv.config()
 
 const app = express()
+const httpServer = createServer(app)
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+})
+
 const PORT = process.env.PORT || 5000
 
 app.use(cors())
@@ -27,6 +37,29 @@ app.get('/', (req, res) => {
   res.json({ message: 'GharJagga Nepal API is running!' })
 })
 
-app.listen(PORT, () => {
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id)
+
+  socket.on('join_room', (roomId: string) => {
+    socket.join(roomId)
+    console.log(`User joined room: ${roomId}`)
+  })
+
+  socket.on('send_message', (data: {
+    roomId: string
+    message: string
+    senderName: string
+    senderId: number
+    timestamp: string
+  }) => {
+    io.to(data.roomId).emit('receive_message', data)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id)
+  })
+})
+
+httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

@@ -510,7 +510,19 @@ const handleToggleFavorite = async () => {
                   </button>
                 </a>
               </div>
-
+               <button
+  onClick={() => navigate(`/chat/${property.id}`)}
+  className="btn-outline"
+  style={{
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px'
+  }}
+>
+  <MessageCircle size={16} /> Chat with Owner
+</button>
               {/* Schedule Visit Button */}
               <button
                 onClick={() => setShowBooking(!showBooking)}
